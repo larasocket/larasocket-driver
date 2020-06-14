@@ -1,0 +1,36 @@
+{
+    "name": "exzachlyvv/laravel-websockets-driver",
+    "description": "Broadcast driver for Laravel Websockets.",
+    "type": "project",
+    "keywords": [
+        "laravel",
+        "broadcast",
+        "websocket",
+        "driver"
+    ],
+    "homepage": "https://zachvv.me",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Zach Vander Velden",
+            "email": "zachvv11@gmail.com"
+        }
+    ],
+    "minimum-stability": "dev",
+    "autoload": {
+        "psr-4": {
+            "Exzachly\\LaravelWebsockets\\": "src/"
+        }
+    },
+    "require": {},
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Exzachly\\LaravelWebsockets\\LaravelWebsocketServiceProvider"
+            ],
+            "aliases": {
+                "Websockets": "Exzachly\\LaravelWebsockets\\Facades"
+            }
+        }
+    }
+}

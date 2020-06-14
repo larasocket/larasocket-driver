@@ -1,0 +1,44 @@
+<?php
+
+
+namespace Exzachly\LaravelWebsockets;
+
+
+use function base_path;
+use Exzachly\LaravelWebsockets\Broadcasting\Broadcasters\LaravelWebsocketBroadcaster;
+use Illuminate\Broadcasting\BroadcastManager;
+use Illuminate\Foundation\Application;
+use Illuminate\Support\ServiceProvider;
+
+class LaravelWebsocketServiceProvider extends ServiceProvider
+{
+    /**
+     * Bootstrap any application services.
+     *
+     * @return void
+     */
+    public function boot(BroadcastManager $broadcastManager)
+    {
+        $this->publishes([
+            __DIR__.'/../config/websockets.php' => base_path('config/websockets.php'),
+        ], 'config');
+
+        $broadcastManager->extend('laravel-websocket', function (Application $app, array $config) {
+            return new LaravelWebsocketBroadcaster();
+        });
+
+        $this->commands([
+            Console\InitApiGateway::class,
+        ]);
+    }
+
+    /**
+     * Register any application services.
+     *
+     * @return void
+     */
+    public function register()
+    {
+        $this->app->singleton('laravel-websocket.manager', LaravelWebsocketManager::class);
+    }
+}
