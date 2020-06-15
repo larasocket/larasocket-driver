@@ -24,7 +24,9 @@ class LaravelWebsocketServiceProvider extends ServiceProvider
         ], 'config');
 
         $broadcastManager->extend('laravel-websocket', function (Application $app, array $config) {
-            return new LaravelWebsocketBroadcaster();
+            return $app->make(LaravelWebsocketBroadcaster::class, [
+                'config' => $config,
+            ]);
         });
 
         $this->commands([

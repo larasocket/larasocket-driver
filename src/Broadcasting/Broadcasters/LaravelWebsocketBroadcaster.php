@@ -5,12 +5,16 @@ namespace Exzachly\LaravelWebsockets\Broadcasting\Broadcasters;
 
 use Arr;
 use function array_map;
+use Exzachly\LaravelWebsockets\LaravelWebsocketManager;
 use Illuminate\Broadcasting\Broadcasters\Broadcaster;
 use Illuminate\Broadcasting\Broadcasters\UsePusherChannelConventions;
 use Illuminate\Broadcasting\BroadcastException;
 use function is_array;
 use function is_bool;
+use function json_decode;
 use function json_encode;
+use function response;
+use Str;
 use function str_replace;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 
@@ -19,26 +23,34 @@ class LaravelWebsocketBroadcaster extends Broadcaster
     use UsePusherChannelConventions;
 
     /**
-     * @var string
+     * The Pusher SDK instance.
+     *
+     * @var LaravelWebsocketManager
      */
-    private $prefix;
+    protected $manager;
 
-    public function __construct($prefix = '')
+    /**
+     * Create a new broadcaster instance.
+     *
+     * @param  LaravelWebsocketManager  $pusher
+     * @return void
+     */
+    public function __construct(LaravelWebsocketManager $manager, array $config)
     {
-        $this->prefix = $prefix;
+        $this->manager = $manager;
     }
 
     /**
      * Authenticate the incoming request for a given channel.
      *
-     * @param \Illuminate\Http\Request $request
+     * @param  \Illuminate\Http\Request  $request
      * @return mixed
+     *
+     * @throws \Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException
      */
     public function auth($request)
     {
-        $channelName = $this->normalizeChannelName(
-            str_replace($this->prefix, '', $request->channel_name)
-        );
+        $channelName = $this->normalizeChannelName($request->channel_name);
 
         if ($this->isGuardedChannel($request->channel_name) &&
             ! $this->retrieveUser($request, $channelName)) {
@@ -46,87 +58,87 @@ class LaravelWebsocketBroadcaster extends Broadcaster
         }
 
         return parent::verifyUserCanAccessChannel(
-            $request,
-            $channelName
+            $request, $channelName
         );
     }
 
     /**
      * Return the valid authentication response.
      *
-     * @param \Illuminate\Http\Request $request
-     * @param mixed $result
+     * @param  \Illuminate\Http\Request  $request
+     * @param  mixed  $result
      * @return mixed
      */
     public function validAuthenticationResponse($request, $result)
     {
-        if (is_bool($result)) {
-            return json_encode($result);
+        if (Str::startsWith($request->channel_name, 'private')) {
+            return $this->decodeLaravelWebsocketResponse(
+                $request, $this->manager->socket_auth($request->channel_name, $request->socket_id)
+            );
         }
 
         $channelName = $this->normalizeChannelName($request->channel_name);
 
-        return json_encode(['channel_data' => [
-            'user_id' => $this->retrieveUser($request, $channelName)->getAuthIdentifier(),
-            'user_info' => $result,
-        ]]);
+        return $this->decodeLaravelWebsocketResponse(
+            $request,
+            $this->manager->presence_auth(
+                $request->channel_name, $request->socket_id,
+                $this->retrieveUser($request, $channelName)->getAuthIdentifier(), $result
+            )
+        );
     }
 
     /**
      * Broadcast the given event.
      *
-     * @param array $channels
-     * @param string $event
-     * @param array $payload
+     * @param  array  $channels
+     * @param  string  $event
+     * @param  array  $payload
      * @return void
+     *
+     * @throws \Illuminate\Broadcasting\BroadcastException
      */
     public function broadcast(array $channels, $event, array $payload = [])
     {
-        if (empty($channels)) {
-            return;
+        $socket = Arr::pull($payload, 'socket');
+
+        $response = $this->manager->trigger(
+            $this->formatChannels($channels), $event, $payload, $socket, true
+        );
+
+        if ($response->status() >= 200 && $response->status() <= 299) {
+            return $response;
         }
 
-//        $connection = $this->redis->connection($this->connection);
-
-        $payload = json_encode([
-            'event' => $event,
-            'data' => $payload,
-            'socket' => Arr::pull($payload, 'socket'),
-        ]);
-
-//        $connection->eval(
-//            $this->broadcastMultipleChannelsScript(),
-//            0, $payload, ...$this->formatChannels($channels)
-//        );
+        throw new BroadcastException(
+            is_bool($response) ? 'Failed to connect to Laravel Websockets.' : $response
+        );
     }
 
     /**
-     * Get the Lua script for broadcasting to multiple channels.
+     * Get the Pusher SDK instance.
      *
-     * ARGV[1] - The payload
-     * ARGV[2...] - The channels
-     *
-     * @return string
+     * @return LaravelWebsocketManager
      */
-//    protected function broadcastMultipleChannelsScript()
-//    {
-//        return <<<'LUA'
-//for i = 2, #ARGV do
-//  redis.call('publish', ARGV[i], ARGV[1])
-//end
-//LUA;
-//    }
+    public function getLaravelWebsocketManager()
+    {
+        return $this->manager;
+    }
 
     /**
-     * Format the channel array into an array of strings.
+     * Decode the given Pusher response.
      *
-     * @param  array  $channels
+     * @param  \Illuminate\Http\Request  $request
+     * @param  mixed  $response
      * @return array
      */
-//    protected function formatChannels(array $channels)
-//    {
-//        return array_map(function ($channel) {
-//            return $this->prefix.$channel;
-//        }, parent::formatChannels($channels));
-//    }
+    protected function decodeLaravelWebsocketResponse($request, $response)
+    {
+        if (! $request->input('callback', false)) {
+            return json_decode($response, true);
+        }
+
+        return response()->json(json_decode($response, true))
+            ->withCallback($request->callback);
+    }
 }
