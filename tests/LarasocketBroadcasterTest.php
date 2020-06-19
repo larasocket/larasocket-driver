@@ -1,18 +1,18 @@
 <?php
 
 
-use Exzachly\LaravelWebsockets\Broadcasting\Broadcasters\LaravelWebsocketBroadcaster;
-use Exzachly\LaravelWebsockets\LaravelWebsocketManager;
+use Exzachly\Larasocket\Broadcasting\Broadcasters\LarasocketBroadcaster;
+use Exzachly\Larasocket\LarasocketManager;
 use Illuminate\Broadcasting\Broadcasters\PusherBroadcaster;
 use Illuminate\Http\Request;
 use Mockery as m;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 
-class LaravelWebsocketsBroadcasterTest extends TestCase
+class LarasocketBroadcasterTest extends TestCase
 {
     /**
-     * @var LaravelWebsocketBroadcaster
+     * @var LarasocketBroadcaster
      */
     public $broadcaster;
 
@@ -22,8 +22,8 @@ class LaravelWebsocketsBroadcasterTest extends TestCase
     {
         parent::setUp();
 
-        $this->manager = m::mock(LaravelWebsocketManager::class);
-        $this->broadcaster = m::mock(LaravelWebsocketBroadcaster::class, [$this->manager, []])->makePartial();
+        $this->manager = m::mock(LarasocketManager::class);
+        $this->broadcaster = m::mock(LarasocketBroadcaster::class, [$this->manager, []])->makePartial();
     }
 
     public function testAuthCallValidAuthenticationResponseWithPrivateChannelWhenCallbackReturnTrue()

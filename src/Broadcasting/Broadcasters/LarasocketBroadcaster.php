@@ -1,11 +1,11 @@
 <?php
 
 
-namespace Exzachly\LaravelWebsockets\Broadcasting\Broadcasters;
+namespace Exzachly\Larasocket\Broadcasting\Broadcasters;
 
 use Arr;
 use function array_map;
-use Exzachly\LaravelWebsockets\LaravelWebsocketManager;
+use Exzachly\Larasocket\LarasocketManager;
 use Illuminate\Broadcasting\Broadcasters\Broadcaster;
 use Illuminate\Broadcasting\Broadcasters\UsePusherChannelConventions;
 use Illuminate\Broadcasting\BroadcastException;
@@ -20,24 +20,24 @@ use function strlen;
 use function strncmp;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 
-class LaravelWebsocketBroadcaster extends Broadcaster
+class LarasocketBroadcaster extends Broadcaster
 {
     use UsePusherChannelConventions;
 
     /**
      * The Pusher SDK instance.
      *
-     * @var LaravelWebsocketManager
+     * @var LarasocketManager
      */
     protected $manager;
 
     /**
      * Create a new broadcaster instance.
      *
-     * @param  LaravelWebsocketManager  $pusher
+     * @param  LarasocketManager  $pusher
      * @return void
      */
-    public function __construct(LaravelWebsocketManager $manager, array $config)
+    public function __construct(LarasocketManager $manager, array $config)
     {
         $this->manager = $manager;
     }
@@ -122,7 +122,7 @@ class LaravelWebsocketBroadcaster extends Broadcaster
     /**
      * Get the Pusher SDK instance.
      *
-     * @return LaravelWebsocketManager
+     * @return LarasocketManager
      */
     public function getLaravelWebsocketManager()
     {

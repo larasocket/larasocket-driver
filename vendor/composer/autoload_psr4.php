@@ -6,5 +6,5 @@ $vendorDir = dirname(dirname(__FILE__));
 $baseDir = dirname($vendorDir);
 
 return array(
-    'Exzachly\\LaravelWebsockets\\' => array($baseDir . '/src'),
+    'Exzachly\\Larasocket\\' => array($baseDir . '/src'),
 );

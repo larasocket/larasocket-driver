@@ -1,14 +1,15 @@
 {
-    "name": "exzachlyvv/laravel-websockets-driver",
-    "description": "Broadcast driver for Laravel Websockets.",
+    "name": "exzachlyvv/larasocket-driver",
+    "description": "Pay as you go broadcast driver for Laravel.",
     "type": "project",
     "keywords": [
         "laravel",
         "broadcast",
         "websocket",
-        "driver"
+        "driver",
+        "larasocket"
     ],
-    "homepage": "https://zachvv.me",
+    "homepage": "https://larasocket.com",
     "license": "MIT",
     "authors": [
         {
@@ -19,14 +20,14 @@
     "minimum-stability": "dev",
     "autoload": {
         "psr-4": {
-            "Exzachly\\LaravelWebsockets\\": "src/"
+            "Exzachly\\Larasocket\\": "src/"
         }
     },
     "require": {},
     "extra": {
         "laravel": {
             "providers": [
-                "Exzachly\\LaravelWebsockets\\LaravelWebsocketServiceProvider"
+                "Exzachly\\Larasocket\\LarasocketServiceProvider"
             ]
         }
     }

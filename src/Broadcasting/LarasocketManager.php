@@ -1,18 +1,18 @@
 <?php
 
 
-namespace Exzachly\LaravelWebsockets;
+namespace Exzachly\Larasocket;
 
 
 use function config;
 use Http;
 use function json_encode;
-use LaravelWebsocketException;
+use LarasocketException;
 
-class LaravelWebsocketManager
+class LarasocketManager
 {
     /**
-     * LaravelWebsocketManager constructor.
+     * LarasocketManager constructor.
      */
     public function __construct()
     {
@@ -30,10 +30,10 @@ class LaravelWebsocketManager
      * @param bool         $debug           [optional]
      * @param bool         $already_encoded [optional]
      *
-     * @throws LaravelWebsocketException Throws exception if $channels is an array of size 101 or above or $socket_id is invalid
-     *
-     *
      * @return \Illuminate\Http\Client\Response
+     *@throws LarasocketException Throws exception if $channels is an array of size 101 or above or $socket_id is invalid
+     *
+     *
      */
     public function trigger($channels, $event, $data, $socket_id = null, $debug = false)
     {
@@ -41,11 +41,11 @@ class LaravelWebsocketManager
             $channels = array($channels);
         }
 
-        // ping the LaravelWebsocket server to broadcast a message to all the clients.
+        // ping the Larasocket server to broadcast a message to all the clients.
         $url = 'http://localhost:8000/api/broadcast';
 
         return Http::
-            withToken(config('laravel-websockets.token'))
+            withToken(config('larasocket.token'))
             ->withHeaders([
                 'Accept' => 'application/json',
             ])
