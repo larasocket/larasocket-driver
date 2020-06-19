@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\Facade as LaravelFacade;
  *
  * @see LaravelWebsocketManager
  */
-class Facade extends LaravelFacade
+class LaravelWebsocket extends LaravelFacade
 {
     protected static function getFacadeAccessor()
     {

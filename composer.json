@@ -27,10 +27,7 @@
         "laravel": {
             "providers": [
                 "Exzachly\\LaravelWebsockets\\LaravelWebsocketServiceProvider"
-            ],
-            "aliases": {
-                "Websockets": "Exzachly\\LaravelWebsockets\\Facades"
-            }
+            ]
         }
     }
 }

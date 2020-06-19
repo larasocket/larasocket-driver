@@ -16,6 +16,8 @@ use function json_encode;
 use function response;
 use Str;
 use function str_replace;
+use function strlen;
+use function strncmp;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 
 class LaravelWebsocketBroadcaster extends Broadcaster
@@ -71,9 +73,9 @@ class LaravelWebsocketBroadcaster extends Broadcaster
      */
     public function validAuthenticationResponse($request, $result)
     {
-        if (Str::startsWith($request->channel_name, 'private')) {
+        if (strncmp($request->channel_name, 'private', strlen('private')) === 0) {
             return $this->decodeLaravelWebsocketResponse(
-                $request, $this->manager->socket_auth($request->channel_name, $request->socket_id)
+                $request, $this->manager->authPrivate($request->channel_name, $request->socket_id)
             );
         }
 
@@ -81,7 +83,7 @@ class LaravelWebsocketBroadcaster extends Broadcaster
 
         return $this->decodeLaravelWebsocketResponse(
             $request,
-            $this->manager->presence_auth(
+            $this->manager->authPresence(
                 $request->channel_name, $request->socket_id,
                 $this->retrieveUser($request, $channelName)->getAuthIdentifier(), $result
             )
@@ -106,7 +108,9 @@ class LaravelWebsocketBroadcaster extends Broadcaster
             $this->formatChannels($channels), $event, $payload, $socket, true
         );
 
-        if ($response->status() >= 200 && $response->status() <= 299) {
+        if ($response->status() >= 200
+            && $response->status() <= 299
+            && ($json = $response->json())) {
             return $response;
         }
 
@@ -138,7 +142,8 @@ class LaravelWebsocketBroadcaster extends Broadcaster
             return json_decode($response, true);
         }
 
-        return response()->json(json_decode($response, true))
+        return response()
+            ->json(json_decode($response, true))
             ->withCallback($request->callback);
     }
 }

@@ -4,6 +4,7 @@
 namespace Exzachly\LaravelWebsockets;
 
 
+use function config;
 use Http;
 use function json_encode;
 use LaravelWebsocketException;
@@ -40,15 +41,29 @@ class LaravelWebsocketManager
             $channels = array($channels);
         }
 
+        // ping the LaravelWebsocket server to broadcast a message to all the clients.
+        $url = 'http://localhost:8000/api/broadcast';
+
         return Http::
-            withHeaders([
-                'Accept' => 'application/json'
+            withToken(config('laravel-websockets.token'))
+            ->withHeaders([
+                'Accept' => 'application/json',
             ])
-            ->post('http://localhost:8000/api/broadcast', [
+            ->post($url, [
                 'event' => "\\{$event}",
                 'channels' => $channels,
-                'data' => json_encode($data),
+                'payload' => json_encode($data),
                 'socket_id' => $socket_id,
             ]);
+    }
+
+    public function authPrivate(string $channel, $socketId)
+    {
+        return '';
+    }
+
+    public function authPresence(string $channel, $socketId, $uid, $authResults)
+    {
+        return '';
     }
 }

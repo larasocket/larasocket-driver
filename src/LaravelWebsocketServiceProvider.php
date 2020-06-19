@@ -20,7 +20,7 @@ class LaravelWebsocketServiceProvider extends ServiceProvider
     public function boot(BroadcastManager $broadcastManager)
     {
         $this->publishes([
-            __DIR__.'/../config/websockets.php' => base_path('config/websockets.php'),
+            __DIR__.'/../config/laravel-websockets.php' => base_path('config/laravel-websockets.php'),
         ], 'config');
 
         $broadcastManager->extend('laravel-websocket', function (Application $app, array $config) {
@@ -41,6 +41,8 @@ class LaravelWebsocketServiceProvider extends ServiceProvider
      */
     public function register()
     {
+        $this->mergeConfigFrom(__DIR__.'/../config/laravel-websockets.php', 'laravel-websockets');
+
         $this->app->singleton('laravel-websocket.manager', LaravelWebsocketManager::class);
     }
 }
