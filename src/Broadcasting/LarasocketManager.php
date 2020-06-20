@@ -50,7 +50,7 @@ class LarasocketManager
                 'Accept' => 'application/json',
             ])
             ->post($url, [
-                'event' => "\\{$event}",
+                'event' => $event,
                 'channels' => $channels,
                 'payload' => json_encode($data),
                 'socket_id' => $socket_id,
