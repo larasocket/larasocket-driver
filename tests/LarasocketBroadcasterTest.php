@@ -22,8 +22,7 @@ class LarasocketBroadcasterTest extends TestCase
     {
         parent::setUp();
 
-        $this->manager = m::mock(LarasocketManager::class);
-        $this->broadcaster = m::mock(LarasocketBroadcaster::class, [$this->manager, []])->makePartial();
+        $this->broadcaster = m::mock(LarasocketBroadcaster::class, [[]])->makePartial();
     }
 
     public function testAuthCallValidAuthenticationResponseWithPrivateChannelWhenCallbackReturnTrue()
@@ -155,7 +154,6 @@ class LarasocketBroadcasterTest extends TestCase
     {
         $request = m::mock(Request::class);
         $request->channel_name = $channel;
-        $request->socket_id = 'abcd.1234';
 
         $request->shouldReceive('input')
             ->with('callback', false)

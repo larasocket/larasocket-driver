@@ -38,7 +38,5 @@ class LarasocketServiceProvider extends ServiceProvider
     public function register()
     {
         $this->mergeConfigFrom(__DIR__.'/../config/larasocket.php', 'larasocket');
-
-        $this->app->singleton('larasocket.manager', LarasocketManager::class);
     }
 }

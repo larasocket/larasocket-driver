@@ -5,12 +5,14 @@ namespace Exzachly\Larasocket\Broadcasting\Broadcasters;
 
 use Arr;
 use function array_map;
-use Exzachly\Larasocket\LarasocketManager;
+use function config;
+use Http;
 use Illuminate\Broadcasting\Broadcasters\Broadcaster;
 use Illuminate\Broadcasting\Broadcasters\UsePusherChannelConventions;
 use Illuminate\Broadcasting\BroadcastException;
 use function is_array;
 use function is_bool;
+use function is_string;
 use function json_decode;
 use function json_encode;
 use function response;
@@ -22,24 +24,17 @@ use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 
 class LarasocketBroadcaster extends Broadcaster
 {
-    use UsePusherChannelConventions;
+    private const LARASOCKET_SERVER_MESSAGE_URL = 'http://localhost:8000/api/broadcast';
 
-    /**
-     * The Pusher SDK instance.
-     *
-     * @var LarasocketManager
-     */
-    protected $manager;
+    use UsePusherChannelConventions;
 
     /**
      * Create a new broadcaster instance.
      *
-     * @param  LarasocketManager  $pusher
      * @return void
      */
-    public function __construct(LarasocketManager $manager, array $config)
+    public function __construct(array $config)
     {
-        $this->manager = $manager;
     }
 
     /**
@@ -74,19 +69,19 @@ class LarasocketBroadcaster extends Broadcaster
     public function validAuthenticationResponse($request, $result)
     {
         if (strncmp($request->channel_name, 'private', strlen('private')) === 0) {
-            return $this->decodeLaravelWebsocketResponse(
-                $request, $this->manager->authPrivate($request->channel_name, $request->socket_id)
+            return $this->authPrivate(
+                $request->channel_name,
+                $request->connection_id
             );
         }
 
         $channelName = $this->normalizeChannelName($request->channel_name);
 
-        return $this->decodeLaravelWebsocketResponse(
-            $request,
-            $this->manager->authPresence(
-                $request->channel_name, $request->socket_id,
-                $this->retrieveUser($request, $channelName)->getAuthIdentifier(), $result
-            )
+        return $this->authPresence(
+            $request->channel_name,
+            $request->connection_id,
+            $this->retrieveUser($request, $channelName)->getAuthIdentifier(),
+            $result
         );
     }
 
@@ -104,7 +99,7 @@ class LarasocketBroadcaster extends Broadcaster
     {
         $socket = Arr::pull($payload, 'socket');
 
-        $response = $this->manager->trigger(
+        $response = $this->trigger(
             $this->formatChannels($channels), $event, $payload, $socket, true
         );
 
@@ -119,31 +114,61 @@ class LarasocketBroadcaster extends Broadcaster
         );
     }
 
+
     /**
-     * Get the Pusher SDK instance.
+     * A broadcast-ed event has been triggered. We need to send it over to Larasocket servers for processing and then
+     * dispatching to listening clients.
      *
-     * @return LarasocketManager
+     * @param $channels
+     * @param $event
+     * @param $data
+     * @param null $connectionId
+     * @return \Illuminate\Http\Client\Response
      */
-    public function getLaravelWebsocketManager()
+    public function trigger($channels, $event, $data, $connectionId = null)
     {
-        return $this->manager;
+        if (is_string($channels) === true) {
+            $channels = array($channels);
+        }
+
+        return Http::
+            withToken(config('larasocket.token'))
+            ->withHeaders(['Accept' => 'application/json'])
+            ->post(self::LARASOCKET_SERVER_MESSAGE_URL, [
+                'event' => $event,
+                'channels' => $channels,
+                'payload' => json_encode($data),
+                'only_to_others' => $connectionId !== null, // server already has the connection id information.
+            ]);
     }
 
     /**
-     * Decode the given Pusher response.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  mixed  $response
+     * @param string $channel
+     * @param $connectionId
      * @return array
      */
-    protected function decodeLaravelWebsocketResponse($request, $response)
+    public function authPrivate(string $channel, $connectionId)
     {
-        if (! $request->input('callback', false)) {
-            return json_decode($response, true);
-        }
+        return [
+            'connection_id' => $connectionId,
+            'channel' => $channel,
+        ];
+    }
 
-        return response()
-            ->json(json_decode($response, true))
-            ->withCallback($request->callback);
+    /**
+     * @param string $channel
+     * @param $connectionId
+     * @param $uid
+     * @param $authResults
+     * @return array
+     */
+    public function authPresence(string $channel, $connectionId, $uid, $authResults)
+    {
+        return [
+            'connection_id' => $connectionId,
+            'channel' => $channel,
+            'user_id' => $uid,
+            'payload' => $authResults,
+        ];
     }
 }
