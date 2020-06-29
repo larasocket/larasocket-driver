@@ -20,14 +20,14 @@
     "minimum-stability": "dev",
     "autoload": {
         "psr-4": {
-            "Exzachly\\Larasocket\\": "src/"
+            "Larasocket\\": "src/"
         }
     },
     "require": {},
     "extra": {
         "laravel": {
             "providers": [
-                "Exzachly\\Larasocket\\LarasocketServiceProvider"
+                "Larasocket\\LarasocketServiceProvider"
             ]
         }
     }

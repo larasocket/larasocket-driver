@@ -1,37 +1,27 @@
 <?php
 
-
-namespace Exzachly\Larasocket\Broadcasting\Broadcasters;
+namespace Larasocket;
 
 use Arr;
-use function array_map;
 use function config;
 use Http;
 use Illuminate\Broadcasting\Broadcasters\Broadcaster;
 use Illuminate\Broadcasting\Broadcasters\UsePusherChannelConventions;
 use Illuminate\Broadcasting\BroadcastException;
-use function is_array;
 use function is_bool;
 use function is_string;
-use function json_decode;
 use function json_encode;
 use function response;
-use Str;
-use function str_replace;
 use function strlen;
 use function strncmp;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 
 class LarasocketBroadcaster extends Broadcaster
 {
-    private const LARASOCKET_SERVER_MESSAGE_URL = 'http://localhost:8000/api/broadcast';
-
     use UsePusherChannelConventions;
 
     /**
      * Create a new broadcaster instance.
-     *
-     * @return void
      */
     public function __construct(array $config)
     {
@@ -40,10 +30,11 @@ class LarasocketBroadcaster extends Broadcaster
     /**
      * Authenticate the incoming request for a given channel.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @return mixed
+     * @param \Illuminate\Http\Request $request
      *
      * @throws \Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException
+     *
+     * @return mixed
      */
     public function auth($request)
     {
@@ -51,24 +42,26 @@ class LarasocketBroadcaster extends Broadcaster
 
         if ($this->isGuardedChannel($request->channel_name) &&
             ! $this->retrieveUser($request, $channelName)) {
-            throw new AccessDeniedHttpException;
+            throw new AccessDeniedHttpException();
         }
 
         return parent::verifyUserCanAccessChannel(
-            $request, $channelName
+            $request,
+            $channelName
         );
     }
 
     /**
      * Return the valid authentication response.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  mixed  $result
+     * @param \Illuminate\Http\Request $request
+     * @param mixed                    $result
+     *
      * @return mixed
      */
     public function validAuthenticationResponse($request, $result)
     {
-        if (strncmp($request->channel_name, 'private', strlen('private')) === 0) {
+        if (0 === strncmp($request->channel_name, 'private', strlen('private'))) {
             return $this->authPrivate(
                 $request->channel_name,
                 $request->connection_id
@@ -88,10 +81,9 @@ class LarasocketBroadcaster extends Broadcaster
     /**
      * Broadcast the given event.
      *
-     * @param  array  $channels
-     * @param  string  $event
-     * @param  array  $payload
-     * @return void
+     * @param array  $channels
+     * @param string $event
+     * @param array  $payload
      *
      * @throws \Illuminate\Broadcasting\BroadcastException
      */
@@ -100,7 +92,10 @@ class LarasocketBroadcaster extends Broadcaster
         $socket = Arr::pull($payload, 'socket');
 
         $response = $this->trigger(
-            $this->formatChannels($channels), $event, $payload, $socket, true
+            $this->formatChannels($channels),
+            $event,
+            $payload,
+            $socket
         );
 
         if ($response->status() >= 200
@@ -114,7 +109,6 @@ class LarasocketBroadcaster extends Broadcaster
         );
     }
 
-
     /**
      * A broadcast-ed event has been triggered. We need to send it over to Larasocket servers for processing and then
      * dispatching to listening clients.
@@ -122,29 +116,34 @@ class LarasocketBroadcaster extends Broadcaster
      * @param $channels
      * @param $event
      * @param $data
-     * @param null $connectionId
+     * @param $connectionId
+     *
      * @return \Illuminate\Http\Client\Response
      */
-    public function trigger($channels, $event, $data, $connectionId = null)
+    public function trigger($channels, $event, $data, $connectionId)
     {
-        if (is_string($channels) === true) {
-            $channels = array($channels);
+        if (true === is_string($channels)) {
+            $channels = [$channels];
         }
+
+        $url = config('larasocket.url').'/api/broadcast';
 
         return Http::
             withToken(config('larasocket.token'))
-            ->withHeaders(['Accept' => 'application/json'])
-            ->post(self::LARASOCKET_SERVER_MESSAGE_URL, [
-                'event' => $event,
-                'channels' => $channels,
-                'payload' => json_encode($data),
-                'only_to_others' => $connectionId !== null, // server already has the connection id information.
-            ]);
+                ->withHeaders(['Accept' => 'application/json'])
+                ->post($url, [
+                    'event' => $event,
+                    'channels' => $channels,
+                    'payload' => json_encode($data),
+                    'connection_id' => $connectionId,
+                ])
+            ;
     }
 
     /**
      * @param string $channel
      * @param $connectionId
+     *
      * @return array
      */
     public function authPrivate(string $channel, $connectionId)
@@ -160,6 +159,7 @@ class LarasocketBroadcaster extends Broadcaster
      * @param $connectionId
      * @param $uid
      * @param $authResults
+     *
      * @return array
      */
     public function authPresence(string $channel, $connectionId, $uid, $authResults)

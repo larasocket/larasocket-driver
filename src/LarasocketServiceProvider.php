@@ -1,11 +1,8 @@
 <?php
 
-
-namespace Exzachly\Larasocket;
-
+namespace Larasocket;
 
 use function base_path;
-use Exzachly\Larasocket\Broadcasting\Broadcasters\LarasocketBroadcaster;
 use Illuminate\Broadcasting\BroadcastManager;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\ServiceProvider;
@@ -14,8 +11,6 @@ class LarasocketServiceProvider extends ServiceProvider
 {
     /**
      * Bootstrap any application services.
-     *
-     * @return void
      */
     public function boot(BroadcastManager $broadcastManager)
     {
@@ -32,8 +27,6 @@ class LarasocketServiceProvider extends ServiceProvider
 
     /**
      * Register any application services.
-     *
-     * @return void
      */
     public function register()
     {
