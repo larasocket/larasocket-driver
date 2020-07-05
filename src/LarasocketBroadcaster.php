@@ -126,7 +126,7 @@ class LarasocketBroadcaster extends Broadcaster
             $channels = [$channels];
         }
 
-        $url = config('larasocket.url').'/api/broadcast';
+        $url = 'https://larasocket.com/api/broadcast';
 
         return Http::
             withToken(config('larasocket.token'))
