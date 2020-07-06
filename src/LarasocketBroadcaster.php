@@ -64,7 +64,7 @@ class LarasocketBroadcaster extends Broadcaster
         if (0 === strncmp($request->channel_name, 'private', strlen('private'))) {
             return $this->authPrivate(
                 $request->channel_name,
-                $request->connection_id
+                $request->socket_id
             );
         }
 
@@ -72,7 +72,7 @@ class LarasocketBroadcaster extends Broadcaster
 
         return $this->authPresence(
             $request->channel_name,
-            $request->connection_id,
+            $request->socket_id,
             $this->retrieveUser($request, $channelName)->getAuthIdentifier(),
             $result
         );
@@ -81,10 +81,11 @@ class LarasocketBroadcaster extends Broadcaster
     /**
      * Broadcast the given event.
      *
-     * @param array  $channels
+     * @param array $channels
      * @param string $event
-     * @param array  $payload
+     * @param array $payload
      *
+     * @return \Illuminate\Http\Client\Response
      * @throws \Illuminate\Broadcasting\BroadcastException
      */
     public function broadcast(array $channels, $event, array $payload = [])
