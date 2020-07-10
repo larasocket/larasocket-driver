@@ -165,11 +165,6 @@ class LarasocketBroadcaster extends Broadcaster
      */
     public function authPresence(string $channel, $connectionId, $uid, $authResults)
     {
-        return [
-            'connection_id' => $connectionId,
-            'channel' => $channel,
-            'user_id' => $uid,
-            'payload' => $authResults,
-        ];
+        return $authResults;
     }
 }
