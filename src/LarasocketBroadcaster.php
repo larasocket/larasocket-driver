@@ -20,11 +20,17 @@ class LarasocketBroadcaster extends Broadcaster
 {
     use UsePusherChannelConventions;
 
+    private const LARASOCKET_HOST = 'https://larasocket.com';
+
+    protected $larasocketHost;
+    protected $larasocketToken;
+
     /**
      * Create a new broadcaster instance.
      */
     public function __construct(array $config)
     {
+        $this->larasocketToken = $config['token'];
     }
 
     /**
@@ -127,10 +133,10 @@ class LarasocketBroadcaster extends Broadcaster
             $channels = [$channels];
         }
 
-        $url = 'https://larasocket.com/api/broadcast';
+        $url = self::LARASOCKET_HOST.'/api/broadcast';
 
         return Http::
-            withToken(config('larasocket.token'))
+            withToken($this->larasocketToken)
                 ->withHeaders(['Accept' => 'application/json'])
                 ->post($url, [
                     'event' => $event,
