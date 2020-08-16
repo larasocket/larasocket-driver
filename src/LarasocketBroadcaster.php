@@ -2,16 +2,14 @@
 
 namespace Larasocket;
 
-use Arr;
-use function config;
-use Http;
 use Illuminate\Broadcasting\Broadcasters\Broadcaster;
 use Illuminate\Broadcasting\Broadcasters\UsePusherChannelConventions;
 use Illuminate\Broadcasting\BroadcastException;
+use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\Http;
 use function is_bool;
 use function is_string;
 use function json_encode;
-use function response;
 use function strlen;
 use function strncmp;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
