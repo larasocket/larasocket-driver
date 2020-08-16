@@ -20,7 +20,6 @@ class LarasocketBroadcaster extends Broadcaster
 
     private const LARASOCKET_HOST = 'https://larasocket.com';
 
-    protected $larasocketHost;
     protected $larasocketToken;
 
     /**
