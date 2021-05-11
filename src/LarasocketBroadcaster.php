@@ -21,6 +21,7 @@ class LarasocketBroadcaster extends Broadcaster
     private const LARASOCKET_HOST = 'https://larasocket.com';
 
     protected $larasocketToken;
+    protected $larasocketUrl;
 
     /**
      * Create a new broadcaster instance.
@@ -28,6 +29,7 @@ class LarasocketBroadcaster extends Broadcaster
     public function __construct(array $config)
     {
         $this->larasocketToken = $config['token'];
+        $this->larasocketUrl = $config['host'] ?? self::LARASOCKET_HOST;
     }
 
     /**
@@ -130,7 +132,7 @@ class LarasocketBroadcaster extends Broadcaster
             $channels = [$channels];
         }
 
-        $url = self::LARASOCKET_HOST.'/api/broadcast';
+        $url = $this->larasocketUrl.'/api/broadcast';
 
         return Http::
             withToken($this->larasocketToken)
